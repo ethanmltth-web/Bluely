@@ -420,8 +420,33 @@ body.theme-dark .theme-bg-stack > .wave-bg-dark {
   color: var(--tidal-accent);
 }
 
-.app-welcome-name {
+.app-header-center {
   justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.app-local-clock {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  color: var(--tidal-muted, #64748b);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-city-label {
+  font-weight: 600;
+}
+
+.app-local-time {
+  font-weight: 500;
+}
+
+.app-welcome-name {
   margin: 0;
   padding: 0;
   border: none;
@@ -625,6 +650,11 @@ body.welcome-screen-active:not(.welcome-screen-revealing-app) .page-transition {
 
 .welcome-screen-form {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
 }
 
 .welcome-screen-form[hidden] {
@@ -634,6 +664,7 @@ body.welcome-screen-active:not(.welcome-screen-revealing-app) .page-transition {
 .welcome-screen-input-wrap {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .welcome-screen-input {
@@ -786,10 +817,14 @@ body.welcome-screen-active:not(.welcome-screen-revealing-app) .page-transition {
   width: 1.35rem;
   height: 1.35rem;
   display: block;
+  flex-shrink: 0;
   object-fit: contain;
-  filter: brightness(0) invert(1);
   pointer-events: none;
-  transition: filter 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.2s ease;
+}
+
+.toolbar-btn-icon img {
+  filter: brightness(0) invert(1);
 }
 
 #edit-apps-btn .toolbar-btn-icon--edit {
@@ -2815,6 +2850,39 @@ body {
   max-width: 540px;
 }
 
+.customisation-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.86rem;
+  color: var(--tidal-muted, #64748b);
+  line-height: 1.4;
+}
+
+.customisation-city-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.customisation-city-form .add-link-input {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.customisation-city-status {
+  margin: 0.55rem 0 0;
+  font-size: 0.86rem;
+  color: var(--tidal-accent-deep);
+}
+
+.customisation-city-status.is-error {
+  color: #b91c1c;
+}
+
+.customisation-location-card {
+  margin-bottom: 0.85rem;
+}
+
 .customisation-title {
   margin: 0 0 0.65rem;
   font-family: var(--font-display);
@@ -3050,6 +3118,23 @@ body.theme-dark .app-welcome-name:hover,
 body.theme-dark .app-welcome-name:hover .app-welcome-name-value {
   color: var(--welcome-blue-soft);
   text-decoration: none;
+}
+
+body.theme-dark .app-local-clock {
+  color: rgba(245, 248, 255, 0.72);
+}
+
+body.theme-dark .app-city-label {
+  color: rgba(245, 248, 255, 0.9);
+}
+
+body.theme-dark .customisation-hint,
+body.theme-dark .customisation-city-status {
+  color: rgba(245, 248, 255, 0.78);
+}
+
+body.theme-dark .customisation-city-status.is-error {
+  color: #fca5a5;
 }
 
 body.theme-dark .app-points {

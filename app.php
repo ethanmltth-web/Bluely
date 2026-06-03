@@ -23,9 +23,14 @@ $emailRaw = 'guest';
     <div class="app-content">
       <header class="app-header">
         <div class="app-logo">Bluely</div>
-        <button type="button" class="app-welcome-name" id="app-name-btn" title="Click to change your name" aria-label="Welcome, click to change your name">
-          Welcome <span class="app-welcome-name-value" id="app-name-display">your name</span>
-        </button>
+        <div class="app-header-center">
+          <button type="button" class="app-welcome-name" id="app-name-btn" title="Click to change your name" aria-label="Welcome, click to change your name">
+            Welcome <span class="app-welcome-name-value" id="app-name-display">your name</span>
+          </button>
+          <p class="app-local-clock" id="app-local-clock" aria-live="polite">
+            <span class="app-city-label" id="app-city-label"></span><span class="app-local-clock-sep" id="app-local-clock-sep" aria-hidden="true"> · </span><time class="app-local-time" id="app-local-time"></time>
+          </p>
+        </div>
         <nav class="app-nav" aria-label="Bluely stats">
           <div class="app-points" id="app-points-display">Points: 0</div>
           <div class="app-shards" id="app-shards-display">Shards: 0</div>
@@ -50,10 +55,10 @@ $emailRaw = 'guest';
       <div class="apps-toolbar">
         <button type="button" class="add-link-btn add-link-btn-icon-only" id="add-link-btn" title="Add link" aria-label="Add link">+</button>
         <button type="button" class="add-link-btn add-link-btn-icon-only" id="make-folder-btn" title="Make folder" aria-label="Make folder">
-          <img src="assets/folder-icon.png" alt="" class="toolbar-btn-icon" width="22" height="22">
+          <svg class="toolbar-btn-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#fff" d="M4 6h7l2 2h7v12H4V6zm2 2v10h12V10h-6.8L11.2 8H6z"/></svg>
         </button>
         <button type="button" class="add-link-btn add-link-btn-icon-only" id="edit-apps-btn" title="Edit apps" aria-label="Edit apps">
-          <img src="assets/edit-icon.png" alt="" class="toolbar-btn-icon toolbar-btn-icon--edit" width="22" height="22">
+          <svg class="toolbar-btn-icon toolbar-btn-icon--edit" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </button>
       </div>
       <section class="upcoming-panel" id="upcoming-panel" aria-labelledby="upcoming-title">
@@ -214,6 +219,15 @@ $emailRaw = 'guest';
              role="tabpanel"
              aria-label="Customisation panel" hidden>
       <h2 class="section-title">Customisation</h2>
+      <div class="customisation-card customisation-location-card">
+        <h3 class="customisation-title">Your city</h3>
+        <p class="customisation-hint">Local time in the header uses your city’s timezone.</p>
+        <form class="customisation-city-form" id="city-form">
+          <input type="text" class="add-link-input" id="city-input" placeholder="e.g. London, Tokyo" maxlength="80" autocomplete="address-level2" aria-label="Your city">
+          <button type="submit" class="add-link-btn">Save city</button>
+        </form>
+        <p class="customisation-city-status" id="city-form-status" hidden></p>
+      </div>
       <div class="customisation-card">
         <h3 class="customisation-title">Styles</h3>
         <div class="customisation-style-list">
@@ -238,6 +252,9 @@ $emailRaw = 'guest';
       <form class="welcome-screen-form" id="welcome-screen-form">
         <div class="welcome-screen-input-wrap">
           <input type="text" class="welcome-screen-input" id="welcome-screen-input" placeholder="Your name" maxlength="30" autocomplete="name" aria-label="Your name">
+        </div>
+        <div class="welcome-screen-input-wrap">
+          <input type="text" class="welcome-screen-input" id="welcome-city-input" placeholder="Your city" maxlength="80" autocomplete="address-level2" aria-label="Your city">
         </div>
       </form>
     </div>
@@ -339,6 +356,18 @@ $emailRaw = 'guest';
       var transitionEl = document.getElementById('page-transition');
       var transitionLock = false;
       var DISPLAY_NAME_KEY = 'tidal_organiser_display_name';
+      var CITY_STORAGE_KEY = 'tidal_organiser_city';
+      var TIMEZONE_STORAGE_KEY = 'tidal_organiser_timezone';
+      var localClockEl = document.getElementById('app-local-clock');
+      var cityLabelEl = document.getElementById('app-city-label');
+      var localClockSepEl = document.getElementById('app-local-clock-sep');
+      var localTimeEl = document.getElementById('app-local-time');
+      var welcomeCityInput = document.getElementById('welcome-city-input');
+      var cityForm = document.getElementById('city-form');
+      var cityInput = document.getElementById('city-input');
+      var cityFormStatus = document.getElementById('city-form-status');
+      var localClockTimer = null;
+      var cityResolveRequestId = 0;
       var welcomeScreen = document.getElementById('welcome-screen');
       var welcomeGreeting = document.getElementById('welcome-screen-greeting');
       var welcomeForm = document.getElementById('welcome-screen-form');
@@ -418,7 +447,7 @@ $emailRaw = 'guest';
       }
 
       // Apps: link storage and UI
-      var USER_STORAGE_SUFFIX = <?php echo json_encode($emailRaw); ?> || 'guest';
+      var USER_STORAGE_SUFFIX = 'guest';
       var STORAGE_KEY = 'tidal_organiser_app_links:' + USER_STORAGE_SUFFIX;
       var LEGACY_APPS_STORAGE_KEY = 'tidal_organiser_app_links';
       var LEGACY_POINTS_STORAGE_KEY = 'tidal_organiser_points';
@@ -664,10 +693,189 @@ $emailRaw = 'guest';
         nameBtn.setAttribute('title', n ? 'Click to change your name' : 'Click to set your name');
       }
 
+      function getBrowserTimezone() {
+        try {
+          return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        } catch (e) {
+          return 'UTC';
+        }
+      }
+
+      function getUserCity() {
+        try {
+          return (localStorage.getItem(CITY_STORAGE_KEY) || '').trim();
+        } catch (e) {
+          return '';
+        }
+      }
+
+      function setUserCity(city) {
+        try {
+          localStorage.setItem(CITY_STORAGE_KEY, (city || '').trim());
+        } catch (e) {}
+        if (cityInput) cityInput.value = getUserCity();
+        if (welcomeCityInput) welcomeCityInput.value = getUserCity();
+        renderLocalClock();
+      }
+
+      function getUserTimezone() {
+        try {
+          var stored = (localStorage.getItem(TIMEZONE_STORAGE_KEY) || '').trim();
+          return stored || getBrowserTimezone();
+        } catch (e) {
+          return getBrowserTimezone();
+        }
+      }
+
+      function setUserTimezone(timeZone) {
+        var safe = (timeZone || '').trim() || getBrowserTimezone();
+        try {
+          localStorage.setItem(TIMEZONE_STORAGE_KEY, safe);
+        } catch (e) {}
+        renderLocalClock();
+      }
+
+      function timezoneToCityLabel(timeZone) {
+        if (!timeZone) return 'Local';
+        var part = timeZone.split('/').pop() || timeZone;
+        return part.replace(/_/g, ' ');
+      }
+
+      function formatLocalTime(date, timeZone) {
+        try {
+          return new Intl.DateTimeFormat(undefined, {
+            timeZone: timeZone,
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          }).format(date);
+        } catch (e) {
+          return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+      }
+
+      function formatLocalTimeIso(date, timeZone) {
+        try {
+          var parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          }).formatToParts(date);
+          var map = {};
+          parts.forEach(function (p) {
+            if (p.type !== 'literal') map[p.type] = p.value;
+          });
+          return map.year + '-' + map.month + '-' + map.day + 'T' + map.hour + ':' + map.minute + ':' + map.second;
+        } catch (e) {
+          return date.toISOString();
+        }
+      }
+
+      function renderLocalClock() {
+        if (!localTimeEl) return;
+        var timeZone = getUserTimezone();
+        var now = new Date();
+        var city = getUserCity();
+        var label = city || timezoneToCityLabel(timeZone);
+        if (cityLabelEl) cityLabelEl.textContent = label;
+        if (localClockSepEl) localClockSepEl.hidden = !label;
+        if (localClockEl) localClockEl.hidden = false;
+        var timeText = formatLocalTime(now, timeZone);
+        localTimeEl.textContent = timeText;
+        localTimeEl.setAttribute('datetime', formatLocalTimeIso(now, timeZone));
+        if (localClockEl) {
+          localClockEl.setAttribute('title', (label ? label + ' — ' : '') + timeText + ' (' + timeZone + ')');
+        }
+      }
+
+      function initLocalClock() {
+        if (!getUserCity() && !localStorage.getItem(TIMEZONE_STORAGE_KEY)) {
+          setUserTimezone(getBrowserTimezone());
+        }
+        renderLocalClock();
+        if (localClockTimer) clearInterval(localClockTimer);
+        localClockTimer = setInterval(renderLocalClock, 1000);
+      }
+
+      function setCityFormStatus(message, isError) {
+        if (!cityFormStatus) return;
+        if (!message) {
+          cityFormStatus.hidden = true;
+          cityFormStatus.textContent = '';
+          cityFormStatus.classList.remove('is-error');
+          return;
+        }
+        cityFormStatus.hidden = false;
+        cityFormStatus.textContent = message;
+        cityFormStatus.classList.toggle('is-error', !!isError);
+      }
+
+      function resolveCityTimezone(city, callback) {
+        var query = (city || '').trim();
+        if (!query) {
+          callback(new Error('Enter a city name.'));
+          return;
+        }
+        var requestId = ++cityResolveRequestId;
+        var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=1&language=en&format=json';
+        fetch(url)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Could not look up that city.');
+            return res.json();
+          })
+          .then(function (data) {
+            if (requestId !== cityResolveRequestId) return;
+            var hit = data && data.results && data.results[0];
+            if (!hit || !hit.timezone) {
+              callback(new Error('City not found. Try a nearby major city.'));
+              return;
+            }
+            callback(null, {
+              city: hit.name || query,
+              timezone: hit.timezone,
+              country: hit.country || ''
+            });
+          })
+          .catch(function (err) {
+            if (requestId !== cityResolveRequestId) return;
+            callback(err || new Error('Could not look up that city.'));
+          });
+      }
+
+      function saveUserCity(city, options) {
+        var opts = options || {};
+        var query = (city || '').trim();
+        if (!query) {
+          setUserCity('');
+          setUserTimezone(getBrowserTimezone());
+          setCityFormStatus('');
+          return;
+        }
+        if (!opts.silent) setCityFormStatus('Looking up timezone…', false);
+        resolveCityTimezone(query, function (err, result) {
+          if (err) {
+            if (!opts.silent) setCityFormStatus(err.message || 'Could not save city.', true);
+            return;
+          }
+          setUserCity(result.city);
+          setUserTimezone(result.timezone);
+          var status = 'Time set for ' + result.city;
+          if (result.country) status += ', ' + result.country;
+          status += '.';
+          if (!opts.silent) setCityFormStatus(status, false);
+        });
+      }
+
       function setWelcomeAskMode() {
         if (welcomeGreeting) welcomeGreeting.textContent = "Hi, What's your name?";
         if (welcomeForm) welcomeForm.hidden = false;
         if (welcomeInput) welcomeInput.value = getDisplayName();
+        if (welcomeCityInput) welcomeCityInput.value = getUserCity();
       }
 
       function setWelcomeBackMode(name) {
@@ -847,6 +1055,13 @@ $emailRaw = 'guest';
       }
 
       if (nameBtn) nameBtn.addEventListener('click', function () { openNamePrompt(true); });
+      if (cityForm && cityInput) {
+        cityInput.value = getUserCity();
+        cityForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          saveUserCity(cityInput.value, { silent: false });
+        });
+      }
       if (welcomeScreen) {
         welcomeScreen.addEventListener('click', function () {
           if (welcomeSequenceActive) return;
@@ -862,6 +1077,10 @@ $emailRaw = 'guest';
           if (!next) return;
           var wasAskingName = welcomeForm && !welcomeForm.hidden;
           setDisplayName(next);
+          if (welcomeCityInput) {
+            var cityNext = (welcomeCityInput.value || '').trim();
+            if (cityNext) saveUserCity(cityNext, { silent: true });
+          }
           if (wasAskingName && !welcomeIsEditMode) {
             runNiceToMeetYouSequence(next);
           } else {
@@ -896,9 +1115,9 @@ $emailRaw = 'guest';
         { name: 'Pinterest', url: 'https://www.pinterest.com/', section: 'discover', description: 'Discover visual ideas for projects, design, and inspiration.' },
         { name: 'YouTube', url: 'https://www.youtube.com/', section: 'discover', description: 'Watch and discover videos, tutorials, and creator content.' }
       ];
-      var GOOGLE_DOCS_ICON_PATH = 'assets/google-docs-logo.png';
-      var GOOGLE_SLIDES_ICON_PATH = 'assets/google-slides-logo.png';
-      var GMAIL_ICON_PATH = 'assets/gmail-logo.png';
+      var GOOGLE_DOCS_ICON_PATH = 'https://www.gstatic.com/images/branding/product/2x/docs_48dp.png';
+      var GOOGLE_SLIDES_ICON_PATH = 'https://www.gstatic.com/images/branding/product/2x/slides_48dp.png';
+      var GMAIL_ICON_PATH = 'https://www.gstatic.com/images/branding/product/2x/gmail_48dp.png';
       var TIDAL_STORE_ICON_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%2385b5f7'/%3E%3Cstop offset='1' stop-color='%236b9aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='18' width='48' height='38' rx='10' fill='url(%23g)'/%3E%3Cpath d='M20 23c0-7 5-11 12-11s12 4 12 11' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M17 31h30M17 38h30' stroke='%23fff' stroke-opacity='.8' stroke-width='2'/%3E%3C/svg%3E";
       var tidalStoreShowAll = false;
       var activeStoreApp = null;
@@ -2652,6 +2871,7 @@ $emailRaw = 'guest';
       updateDailyStreakOnLogin();
       initThemeControls();
       renderDisplayName();
+      initLocalClock();
       openWelcomeScreen({ forceEdit: false });
       // Games removed
 

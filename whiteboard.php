@@ -66,7 +66,7 @@ $emailRaw = 'guest';
       var textLayer = document.getElementById('wb-text-layer');
       var pageTransitionEl = document.getElementById('page-transition');
       var backLink = document.getElementById('whiteboard-back-link');
-      var THEME_STORAGE_KEY = 'tidal_organiser_theme:' + (<?php echo json_encode($emailRaw); ?> || 'guest');
+      var THEME_STORAGE_KEY = 'tidal_organiser_theme:guest';
 
       if (!wbCanvas) return;
 
