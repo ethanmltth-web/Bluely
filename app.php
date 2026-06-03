@@ -219,15 +219,6 @@ $emailRaw = 'guest';
              role="tabpanel"
              aria-label="Customisation panel" hidden>
       <h2 class="section-title">Customisation</h2>
-      <div class="customisation-card customisation-location-card">
-        <h3 class="customisation-title">Your city</h3>
-        <p class="customisation-hint">Local time in the header uses your city’s timezone.</p>
-        <form class="customisation-city-form" id="city-form">
-          <input type="text" class="add-link-input" id="city-input" placeholder="e.g. London, Tokyo" maxlength="80" autocomplete="address-level2" aria-label="Your city">
-          <button type="submit" class="add-link-btn">Save city</button>
-        </form>
-        <p class="customisation-city-status" id="city-form-status" hidden></p>
-      </div>
       <div class="customisation-card">
         <h3 class="customisation-title">Styles</h3>
         <div class="customisation-style-list">
@@ -251,10 +242,14 @@ $emailRaw = 'guest';
       <h1 class="welcome-screen-greeting" id="welcome-screen-greeting">Hi, What's your name?</h1>
       <form class="welcome-screen-form" id="welcome-screen-form">
         <div class="welcome-screen-input-wrap">
-          <input type="text" class="welcome-screen-input" id="welcome-screen-input" placeholder="Your name" maxlength="30" autocomplete="name" aria-label="Your name">
-        </div>
-        <div class="welcome-screen-input-wrap">
-          <input type="text" class="welcome-screen-input" id="welcome-city-input" placeholder="Your city" maxlength="80" autocomplete="address-level2" aria-label="Your city">
+          <div class="welcome-screen-field">
+            <input type="text" class="welcome-screen-input" id="welcome-screen-input" placeholder="Your name" maxlength="30" autocomplete="name" aria-label="Your name">
+            <button type="submit" class="welcome-screen-enter-btn" id="welcome-screen-enter-btn" aria-label="Enter">
+              <svg class="welcome-screen-enter-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="currentColor" d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7h-2z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -362,12 +357,7 @@ $emailRaw = 'guest';
       var cityLabelEl = document.getElementById('app-city-label');
       var localClockSepEl = document.getElementById('app-local-clock-sep');
       var localTimeEl = document.getElementById('app-local-time');
-      var welcomeCityInput = document.getElementById('welcome-city-input');
-      var cityForm = document.getElementById('city-form');
-      var cityInput = document.getElementById('city-input');
-      var cityFormStatus = document.getElementById('city-form-status');
       var localClockTimer = null;
-      var cityResolveRequestId = 0;
       var welcomeScreen = document.getElementById('welcome-screen');
       var welcomeGreeting = document.getElementById('welcome-screen-greeting');
       var welcomeForm = document.getElementById('welcome-screen-form');
@@ -709,15 +699,6 @@ $emailRaw = 'guest';
         }
       }
 
-      function setUserCity(city) {
-        try {
-          localStorage.setItem(CITY_STORAGE_KEY, (city || '').trim());
-        } catch (e) {}
-        if (cityInput) cityInput.value = getUserCity();
-        if (welcomeCityInput) welcomeCityInput.value = getUserCity();
-        renderLocalClock();
-      }
-
       function getUserTimezone() {
         try {
           var stored = (localStorage.getItem(TIMEZONE_STORAGE_KEY) || '').trim();
@@ -802,80 +783,10 @@ $emailRaw = 'guest';
         localClockTimer = setInterval(renderLocalClock, 1000);
       }
 
-      function setCityFormStatus(message, isError) {
-        if (!cityFormStatus) return;
-        if (!message) {
-          cityFormStatus.hidden = true;
-          cityFormStatus.textContent = '';
-          cityFormStatus.classList.remove('is-error');
-          return;
-        }
-        cityFormStatus.hidden = false;
-        cityFormStatus.textContent = message;
-        cityFormStatus.classList.toggle('is-error', !!isError);
-      }
-
-      function resolveCityTimezone(city, callback) {
-        var query = (city || '').trim();
-        if (!query) {
-          callback(new Error('Enter a city name.'));
-          return;
-        }
-        var requestId = ++cityResolveRequestId;
-        var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=1&language=en&format=json';
-        fetch(url)
-          .then(function (res) {
-            if (!res.ok) throw new Error('Could not look up that city.');
-            return res.json();
-          })
-          .then(function (data) {
-            if (requestId !== cityResolveRequestId) return;
-            var hit = data && data.results && data.results[0];
-            if (!hit || !hit.timezone) {
-              callback(new Error('City not found. Try a nearby major city.'));
-              return;
-            }
-            callback(null, {
-              city: hit.name || query,
-              timezone: hit.timezone,
-              country: hit.country || ''
-            });
-          })
-          .catch(function (err) {
-            if (requestId !== cityResolveRequestId) return;
-            callback(err || new Error('Could not look up that city.'));
-          });
-      }
-
-      function saveUserCity(city, options) {
-        var opts = options || {};
-        var query = (city || '').trim();
-        if (!query) {
-          setUserCity('');
-          setUserTimezone(getBrowserTimezone());
-          setCityFormStatus('');
-          return;
-        }
-        if (!opts.silent) setCityFormStatus('Looking up timezone…', false);
-        resolveCityTimezone(query, function (err, result) {
-          if (err) {
-            if (!opts.silent) setCityFormStatus(err.message || 'Could not save city.', true);
-            return;
-          }
-          setUserCity(result.city);
-          setUserTimezone(result.timezone);
-          var status = 'Time set for ' + result.city;
-          if (result.country) status += ', ' + result.country;
-          status += '.';
-          if (!opts.silent) setCityFormStatus(status, false);
-        });
-      }
-
       function setWelcomeAskMode() {
         if (welcomeGreeting) welcomeGreeting.textContent = "Hi, What's your name?";
         if (welcomeForm) welcomeForm.hidden = false;
         if (welcomeInput) welcomeInput.value = getDisplayName();
-        if (welcomeCityInput) welcomeCityInput.value = getUserCity();
       }
 
       function setWelcomeBackMode(name) {
@@ -1055,13 +966,6 @@ $emailRaw = 'guest';
       }
 
       if (nameBtn) nameBtn.addEventListener('click', function () { openNamePrompt(true); });
-      if (cityForm && cityInput) {
-        cityInput.value = getUserCity();
-        cityForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-          saveUserCity(cityInput.value, { silent: false });
-        });
-      }
       if (welcomeScreen) {
         welcomeScreen.addEventListener('click', function () {
           if (welcomeSequenceActive) return;
@@ -1077,10 +981,6 @@ $emailRaw = 'guest';
           if (!next) return;
           var wasAskingName = welcomeForm && !welcomeForm.hidden;
           setDisplayName(next);
-          if (welcomeCityInput) {
-            var cityNext = (welcomeCityInput.value || '').trim();
-            if (cityNext) saveUserCity(cityNext, { silent: true });
-          }
           if (wasAskingName && !welcomeIsEditMode) {
             runNiceToMeetYouSequence(next);
           } else {
@@ -1089,6 +989,15 @@ $emailRaw = 'guest';
         });
         welcomeForm.addEventListener('click', function (e) {
           e.stopPropagation();
+        });
+        welcomeInput.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          if (typeof welcomeForm.requestSubmit === 'function') {
+            welcomeForm.requestSubmit();
+          } else {
+            welcomeForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          }
         });
       }
 
