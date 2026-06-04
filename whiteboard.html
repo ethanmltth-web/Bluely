@@ -11,38 +11,93 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="whiteboard-page">
-  <div class="theme-bg-stack" aria-hidden="true">
+  <div class="theme-bg-stack" id="wb-theme-bg" aria-hidden="true">
     <div class="wave-bg wave-bg-classic"></div>
     <div class="wave-bg wave-bg-dark"></div>
+    <div class="wave-bg wave-bg-y2k"></div>
   </div>
 
   <header class="whiteboard-page-header">
-    <a href="app.html" class="whiteboard-back" id="whiteboard-back-link">← Back to app</a>
-    <h1 class="whiteboard-title">Whiteboard</h1>
-    <div class="whiteboard-toolbar">
-      <div class="whiteboard-tool-group">
-        <button type="button" class="whiteboard-mode-btn is-active" id="wb-mode-pen" title="Pen">Pen</button>
-        <button type="button" class="whiteboard-mode-btn" id="wb-mode-eraser" title="Eraser">Eraser</button>
+    <div class="whiteboard-header-start">
+      <a href="app.html" class="whiteboard-back" id="whiteboard-back-link">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        Back
+      </a>
+      <div class="whiteboard-header-brand">
+        <h1 class="whiteboard-title">Whiteboard</h1>
+        <p class="whiteboard-subtitle">Sketch, connect ideas, and jot notes</p>
       </div>
-      <label class="whiteboard-tool">
-        <span>Color</span>
-        <input type="color" id="wb-pen-color" value="#1e293b" class="whiteboard-color" title="Pen color">
-      </label>
-      <label class="whiteboard-tool">
-        <span>Thickness (1–255)</span>
-        <input type="number" id="wb-pen-thickness" class="whiteboard-thickness" min="1" max="255" value="4" title="Pen thickness">
-      </label>
-      <button type="button" class="whiteboard-mode-btn" id="wb-undo" title="Undo">Undo</button>
-      <button type="button" class="whiteboard-mode-btn" id="wb-redo" title="Redo">Redo</button>
-      <button type="button" class="whiteboard-mode-btn" id="wb-add-text" title="Add text">Add text</button>
-      <button type="button" class="whiteboard-mode-btn" id="wb-add-line" title="Drag from one point to another">Add line</button>
+    </div>
+    <div class="whiteboard-header-center">
+      <button type="button" class="whiteboard-header-icon-btn" id="wb-undo" title="Undo (Ctrl+Z)" disabled aria-label="Undo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05 1.28-6.54 3.27L3 8v9h9l-2.43-2.43A6.96 6.96 0 0 1 12.5 10c1.93 0 3.68.78 4.95 2.05l1.41-1.41A8.96 8.96 0 0 0 12.5 8z"/></svg>
+      </button>
+      <button type="button" class="whiteboard-header-icon-btn" id="wb-redo" title="Redo (Ctrl+Shift+Z)" disabled aria-label="Redo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-2.65 0-5.05 1.28-6.54 3.27L3 8v9h9l-2.43-2.43A6.96 6.96 0 0 1 11.5 10c1.55 0 2.96.49 4.12 1.32l-2.57 2.57 1.41 1.41L21 12.5V3h-9l1.41 1.41 2.48 2.48z"/></svg>
+      </button>
+      <button type="button" class="whiteboard-action-btn" id="wb-export" title="Download PNG">Save image</button>
+      <button type="button" class="whiteboard-action-btn whiteboard-action-btn-danger" id="wb-clear" title="Clear everything">Clear board</button>
     </div>
   </header>
 
-  <div class="whiteboard-canvas-wrap">
-    <div class="whiteboard-board" id="whiteboard-board">
-      <canvas id="whiteboard-canvas" width="1200" height="700"></canvas>
-      <div class="wb-text-layer" id="wb-text-layer"></div>
+  <div class="whiteboard-workspace">
+    <aside class="whiteboard-tools-panel" aria-label="Drawing tools">
+      <div class="whiteboard-tools-section">
+        <span class="whiteboard-tools-label">Tools</span>
+        <div class="whiteboard-tool-grid">
+          <button type="button" class="wb-tool-btn is-active" id="wb-mode-pen" data-tool="pen" title="Pen (P)" aria-label="Pen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </button>
+          <button type="button" class="wb-tool-btn" id="wb-mode-eraser" data-tool="eraser" title="Eraser (E)" aria-label="Eraser">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.24 3.56l4.95 4.94c.78.79.78 2.05 0 2.84L12 20.53a4.008 4.008 0 0 1-5.66 0L2.81 17c-.78-.79-.78-2.05 0-2.84l9.19-9.19a4.008 4.008 0 0 1 5.66 0zm-1.41 1.41a2.008 2.008 0 0 0-2.83 0L4.81 16.59c-.39.39-.39 1.02 0 1.41l3.52 3.52c.39.39 1.02.39 1.41 0l7.19-7.19c.39-.39.39-1.02 0-1.41l-3.52-3.52z"/></svg>
+          </button>
+          <button type="button" class="wb-tool-btn" id="wb-add-line" data-tool="line" title="Straight line (L)" aria-label="Line">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 20L20 4"/></svg>
+          </button>
+          <button type="button" class="wb-tool-btn" id="wb-add-text" data-tool="text" title="Add sticky note (T)" aria-label="Add text">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4v3h5.5v12h3V7H19V4H5z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="whiteboard-tools-section">
+        <span class="whiteboard-tools-label">Color</span>
+        <div class="whiteboard-swatches" id="wb-swatches" role="list">
+          <button type="button" class="whiteboard-swatch is-active" data-color="#1e293b" style="--swatch:#1e293b" title="Ink" aria-label="Ink"></button>
+          <button type="button" class="whiteboard-swatch" data-color="#6b9aed" style="--swatch:#6b9aed" title="Blue" aria-label="Blue"></button>
+          <button type="button" class="whiteboard-swatch" data-color="#dc2626" style="--swatch:#dc2626" title="Red" aria-label="Red"></button>
+          <button type="button" class="whiteboard-swatch" data-color="#16a34a" style="--swatch:#16a34a" title="Green" aria-label="Green"></button>
+          <button type="button" class="whiteboard-swatch" data-color="#d97706" style="--swatch:#d97706" title="Orange" aria-label="Orange"></button>
+          <button type="button" class="whiteboard-swatch" data-color="#9333ea" style="--swatch:#9333ea" title="Purple" aria-label="Purple"></button>
+        </div>
+      </div>
+
+      <div class="whiteboard-tools-section">
+        <label class="whiteboard-size-label" for="wb-pen-size">
+          <span class="whiteboard-tools-label">Stroke size</span>
+          <span class="whiteboard-size-value" id="wb-size-label">4</span>
+        </label>
+        <input type="range" id="wb-pen-size" class="whiteboard-size-range" min="1" max="48" value="4" aria-valuemin="1" aria-valuemax="48" aria-valuenow="4">
+        <input type="number" id="wb-pen-size-input" class="whiteboard-size-input" min="1" max="48" value="4" aria-label="Stroke size (1–48)">
+        <div class="whiteboard-size-preview" id="wb-size-preview" aria-hidden="true"></div>
+      </div>
+    </aside>
+
+    <div class="whiteboard-canvas-wrap">
+      <div class="whiteboard-board" id="whiteboard-board">
+        <div class="whiteboard-board-grid" aria-hidden="true"></div>
+        <canvas id="whiteboard-canvas" aria-label="Drawing canvas"></canvas>
+        <div class="wb-text-layer" id="wb-text-layer"></div>
+      </div>
+      <p class="whiteboard-canvas-hint" id="wb-tool-hint">Pen · draw freely on the board</p>
+      <div class="whiteboard-shortcuts" aria-label="Keyboard shortcuts">
+        <span><kbd>P</kbd> Pen</span>
+        <span><kbd>E</kbd> Eraser</span>
+        <span><kbd>L</kbd> Line</span>
+        <span><kbd>T</kbd> Text</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo</span>
+        <span>Double-click board to add a note</span>
+      </div>
     </div>
   </div>
 
@@ -53,35 +108,71 @@
   <script>
     (function () {
       var wbCanvas = document.getElementById('whiteboard-canvas');
-      var wbColor = document.getElementById('wb-pen-color');
-      var wbThickness = document.getElementById('wb-pen-thickness');
+      var penColor = '#1e293b';
+      var wbSize = document.getElementById('wb-pen-size');
+      var wbSizeInput = document.getElementById('wb-pen-size-input');
+      var wbSizeLabel = document.getElementById('wb-size-label');
+      var wbSizePreview = document.getElementById('wb-size-preview');
+      var wbSwatches = document.getElementById('wb-swatches');
+      var wbToolHint = document.getElementById('wb-tool-hint');
       var undoBtn = document.getElementById('wb-undo');
       var redoBtn = document.getElementById('wb-redo');
       var lineBtn = document.getElementById('wb-add-line');
       var penBtn = document.getElementById('wb-mode-pen');
       var eraserBtn = document.getElementById('wb-mode-eraser');
       var addTextBtn = document.getElementById('wb-add-text');
+      var clearBtn = document.getElementById('wb-clear');
+      var exportBtn = document.getElementById('wb-export');
       var textLayer = document.getElementById('wb-text-layer');
+      var boardEl = document.getElementById('whiteboard-board');
       var pageTransitionEl = document.getElementById('page-transition');
       var backLink = document.getElementById('whiteboard-back-link');
-      var THEME_STORAGE_KEY = 'tidal_organiser_theme:guest';
+      var WB_USER_SUFFIX = ;
+      var THEME_STORAGE_KEY = 'tidal_organiser_theme:' + WB_USER_SUFFIX;
+      var WB_STORAGE_KEY = 'tidal_organiser_whiteboard_data';
+      var TOOL_HINTS = {
+        pen: 'Pen · draw freely on the board',
+        eraser: 'Eraser · rub out strokes',
+        line: 'Line · click and drag for a straight line',
+        text: 'Text · add sticky notes, drag to move'
+      };
 
       if (!wbCanvas) return;
 
       var ctx = wbCanvas.getContext('2d');
       var drawing = false;
-      var currentTool = 'pen'; // pen | eraser | line
+      var currentTool = 'pen';
       var lineStart = null;
       var lineBaseState = null;
       var lastPos = null;
       var undoStack = [];
       var redoStack = [];
+      var saveTimer = null;
+      var restoring = false;
+      var logicalWidth = 0;
+      var logicalHeight = 0;
+      var canvasDpr = 1;
+      var resizeTimer = null;
+      var isEmbedded = window.self !== window.top;
+
+      if (isEmbedded) {
+        document.body.classList.add('whiteboard-embedded');
+      }
+
+      function setCanvasCursor() {
+        var map = { pen: 'crosshair', eraser: 'cell', line: 'crosshair', text: 'text' };
+        wbCanvas.style.cursor = map[currentTool] || 'crosshair';
+      }
 
       function setTool(tool) {
         currentTool = tool;
-        if (penBtn) penBtn.classList.toggle('is-active', tool === 'pen');
-        if (eraserBtn) eraserBtn.classList.toggle('is-active', tool === 'eraser');
-        if (lineBtn) lineBtn.classList.toggle('is-active', tool === 'line');
+        [penBtn, eraserBtn, lineBtn, addTextBtn].forEach(function (btn) {
+          if (!btn) return;
+          var t = btn.getAttribute('data-tool');
+          btn.classList.toggle('is-active', t === tool);
+        });
+        if (wbToolHint) wbToolHint.textContent = TOOL_HINTS[tool] || '';
+        setCanvasCursor();
       }
 
       function updateHistoryButtons() {
@@ -89,34 +180,113 @@
         if (redoBtn) redoBtn.disabled = redoStack.length === 0;
       }
 
+      function updateSizeUi() {
+        var v = getThickness();
+        if (wbSizeLabel) wbSizeLabel.textContent = String(v);
+        if (wbSize) wbSize.setAttribute('aria-valuenow', String(v));
+        if (wbSizePreview) {
+          wbSizePreview.style.width = Math.min(40, 8 + v) + 'px';
+          wbSizePreview.style.height = Math.min(40, 8 + v) + 'px';
+          wbSizePreview.style.background = (currentTool === 'eraser') ? '#94a3b8' : penColor;
+        }
+      }
+
+      function syncSwatches(color) {
+        if (!wbSwatches) return;
+        wbSwatches.querySelectorAll('.whiteboard-swatch').forEach(function (btn) {
+          btn.classList.toggle('is-active', btn.getAttribute('data-color') === color);
+        });
+      }
+
       function saveState() {
+        if (restoring) return;
         undoStack.push(wbCanvas.toDataURL('image/png'));
         if (undoStack.length > 80) undoStack.shift();
         redoStack = [];
         updateHistoryButtons();
+        schedulePersist();
       }
 
-      function restoreState(dataUrl) {
+      function restoreState(dataUrl, onDone) {
         var img = new Image();
         img.onload = function () {
           ctx.globalCompositeOperation = 'source-over';
-          ctx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
-          ctx.drawImage(img, 0, 0);
+          ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+          ctx.drawImage(img, 0, 0, logicalWidth, logicalHeight);
+          if (typeof onDone === 'function') onDone();
         };
         img.src = dataUrl;
       }
 
-      function getThickness() {
-        var v = wbThickness ? parseInt(wbThickness.value, 10) : 4;
+      function syncCanvasSize(preserveDrawing) {
+        if (!boardEl || !wbCanvas) return;
+        var wrap = document.querySelector('.whiteboard-canvas-wrap');
+        if (!wrap) return;
+        var availW = Math.floor(wrap.clientWidth);
+        var availH = Math.floor(wrap.clientHeight);
+        if (availW < 20 || availH < 20) return;
+
+        var snapshot = preserveDrawing && logicalWidth > 0 ? wbCanvas.toDataURL('image/png') : null;
+        logicalWidth = availW;
+        logicalHeight = availH;
+        boardEl.style.width = logicalWidth + 'px';
+        boardEl.style.height = logicalHeight + 'px';
+
+        canvasDpr = window.devicePixelRatio || 1;
+        wbCanvas.width = Math.round(logicalWidth * canvasDpr);
+        wbCanvas.height = Math.round(logicalHeight * canvasDpr);
+        wbCanvas.style.width = logicalWidth + 'px';
+        wbCanvas.style.height = logicalHeight + 'px';
+        ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0);
+
+        function paintWhite() {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+        }
+
+        if (snapshot) {
+          var img = new Image();
+          img.onload = function () {
+            paintWhite();
+            ctx.drawImage(img, 0, 0, logicalWidth, logicalHeight);
+          };
+          img.src = snapshot;
+        } else {
+          paintWhite();
+        }
+      }
+
+      function scheduleCanvasResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          syncCanvasSize(true);
+        }, 120);
+      }
+
+      function clampStrokeSize(v) {
+        v = parseInt(v, 10);
         if (isNaN(v) || v < 1) return 1;
-        if (v > 255) return 255;
+        if (v > 48) return 48;
         return v;
+      }
+
+      function setStrokeSize(v) {
+        var safe = clampStrokeSize(v);
+        if (wbSize) wbSize.value = String(safe);
+        if (wbSizeInput) wbSizeInput.value = String(safe);
+        updateSizeUi();
+      }
+
+      function getThickness() {
+        var raw = wbSizeInput ? wbSizeInput.value : (wbSize ? wbSize.value : 4);
+        return clampStrokeSize(raw);
       }
 
       function getPos(e) {
         var rect = wbCanvas.getBoundingClientRect();
-        var scaleX = wbCanvas.width / rect.width;
-        var scaleY = wbCanvas.height / rect.height;
+        var scaleX = logicalWidth / (rect.width || logicalWidth || 1);
+        var scaleY = logicalHeight / (rect.height || logicalHeight || 1);
         var point = null;
         if (e.touches && e.touches[0]) point = e.touches[0];
         else if (e.changedTouches && e.changedTouches[0]) point = e.changedTouches[0];
@@ -141,7 +311,7 @@
           ctx.strokeStyle = 'rgba(0,0,0,1)';
         } else {
           ctx.globalCompositeOperation = 'source-over';
-          ctx.strokeStyle = wbColor ? wbColor.value : '#1e293b';
+          ctx.strokeStyle = penColor;
         }
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
@@ -150,6 +320,7 @@
       }
 
       function startDraw(e) {
+        if (currentTool === 'text') return;
         e.preventDefault();
         drawing = true;
         var p = getPos(e);
@@ -164,8 +335,8 @@
       }
 
       function moveDraw(e) {
+        if (!drawing || currentTool === 'text') return;
         e.preventDefault();
-        if (!drawing) return;
         var p = getPos(e);
         if (currentTool === 'line') {
           if (!lineBaseState || !lineStart) return;
@@ -181,10 +352,13 @@
       }
 
       function endDraw(e) {
+        if (!drawing || currentTool === 'text') return;
         if (e) e.preventDefault();
-        if (!drawing) return;
         if (currentTool === 'line' && lineBaseState && lineStart) {
-          var endPos = getPos(e || { clientX: 0, clientY: 0 });
+          var endPos = lastPos || lineStart;
+          if (e && (e.type === 'mouseup' || e.type === 'touchend')) {
+            try { endPos = getPos(e); } catch (err) {}
+          }
           ctx.putImageData(lineBaseState, 0, 0);
           drawSegment(lineStart, endPos);
         }
@@ -195,68 +369,127 @@
         saveState();
       }
 
-      wbCanvas.addEventListener('mousedown', startDraw);
-      wbCanvas.addEventListener('mousemove', moveDraw);
-      wbCanvas.addEventListener('mouseup', endDraw);
-      wbCanvas.addEventListener('mouseleave', endDraw);
-      wbCanvas.addEventListener('touchstart', startDraw, { passive: false });
-      wbCanvas.addEventListener('touchmove', moveDraw, { passive: false });
-      wbCanvas.addEventListener('touchend', endDraw, { passive: false });
-
-      if (wbThickness) {
-        wbThickness.addEventListener('input', function () {
-          var v = parseInt(this.value, 10);
-          if (!isNaN(v) && v > 255) this.value = 255;
-          if (!isNaN(v) && v < 1) this.value = 1;
+      function collectTextBlocks() {
+        if (!textLayer) return [];
+        return Array.prototype.map.call(textLayer.querySelectorAll('.wb-text-block'), function (block) {
+          var content = block.querySelector('.wb-text-content');
+          return {
+            left: block.style.left,
+            top: block.style.top,
+            html: content ? content.innerHTML : ''
+          };
         });
       }
 
-      if (penBtn) penBtn.addEventListener('click', function () { setTool('pen'); });
-      if (eraserBtn) eraserBtn.addEventListener('click', function () { setTool('eraser'); });
-      if (lineBtn) {
-        lineBtn.addEventListener('click', function () {
-          setTool(currentTool === 'line' ? 'pen' : 'line');
-        });
-      }
-      if (undoBtn) {
-        undoBtn.addEventListener('click', function () {
-          if (undoStack.length <= 1) return;
-          var current = undoStack.pop();
-          redoStack.push(current);
-          restoreState(undoStack[undoStack.length - 1]);
-          updateHistoryButtons();
-        });
-      }
-      if (redoBtn) {
-        redoBtn.addEventListener('click', function () {
-          if (!redoStack.length) return;
-          var state = redoStack.pop();
-          undoStack.push(state);
-          restoreState(state);
-          updateHistoryButtons();
-        });
+      function schedulePersist() {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(persistWhiteboard, 450);
       }
 
-      // Add text: movable, editable text blocks
-      function createTextBlock(x, y) {
+      function persistWhiteboard() {
+        try {
+          localStorage.setItem(WB_STORAGE_KEY, JSON.stringify({
+            image: wbCanvas.toDataURL('image/jpeg', 0.82),
+            texts: collectTextBlocks()
+          }));
+        } catch (e) {}
+      }
+
+      function loadWhiteboard() {
+        try {
+          var raw = localStorage.getItem(WB_STORAGE_KEY);
+          if (!raw) return false;
+          var data = JSON.parse(raw);
+          var loaded = false;
+          if (data.texts && textLayer && data.texts.length) {
+            data.texts.forEach(function (item) {
+              var coords = layerCoordsFromStored(item.left, item.top);
+              var block = createTextBlock(coords.x, coords.y, item.html || '');
+              textLayer.appendChild(block);
+            });
+            loaded = true;
+          }
+          if (data.image) {
+            restoring = true;
+            restoreState(data.image, function () {
+              restoring = false;
+              undoStack = [wbCanvas.toDataURL('image/png')];
+              updateHistoryButtons();
+            });
+            return true;
+          }
+          if (loaded) {
+            saveState();
+            return true;
+          }
+          return false;
+        } catch (e) {
+          restoring = false;
+          return false;
+        }
+      }
+
+      function layerCoordsFromStored(left, top) {
+        var x = parseFloat(left) || 0;
+        var y = parseFloat(top) || 0;
+        return { x: x + 80, y: y + 18 };
+      }
+
+      function clearBoard() {
+        if (!window.confirm('Clear the whole whiteboard? This cannot be undone.')) return;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+        if (textLayer) textLayer.innerHTML = '';
+        undoStack = [];
+        redoStack = [];
+        saveState();
+        try { localStorage.removeItem(WB_STORAGE_KEY); } catch (e) {}
+      }
+
+      function exportBoard() {
+        var link = document.createElement('a');
+        link.download = 'bluely-whiteboard.png';
+        link.href = wbCanvas.toDataURL('image/png');
+        link.click();
+      }
+
+      function createTextBlock(x, y, initialHtml) {
         var block = document.createElement('div');
         block.className = 'wb-text-block';
-        block.innerHTML = '<div class="wb-text-drag-handle" title="Drag to move"></div><div class="wb-text-content" contenteditable="true" data-placeholder="Type here…"></div>';
-        block.style.left = (x - 80) + 'px';
-        block.style.top = (y - 18) + 'px';
+        block.innerHTML =
+          '<div class="wb-text-drag-handle" title="Drag to move">' +
+            '<span class="wb-text-drag-grip" aria-hidden="true"></span>' +
+            '<button type="button" class="wb-text-delete" aria-label="Delete note">&times;</button>' +
+          '</div>' +
+          '<div class="wb-text-content" contenteditable="true" data-placeholder="Type here…"></div>';
+        block.style.left = Math.max(0, x - 90) + 'px';
+        block.style.top = Math.max(0, y - 24) + 'px';
         var handle = block.querySelector('.wb-text-drag-handle');
         var content = block.querySelector('.wb-text-content');
+        var deleteBtn = block.querySelector('.wb-text-delete');
+        if (initialHtml) content.innerHTML = initialHtml;
 
+        content.addEventListener('input', schedulePersist);
         content.addEventListener('blur', function () {
-          if (content.textContent.trim() === '') {
-            content.innerHTML = '';
-          }
+          if (content.textContent.trim() === '') content.innerHTML = '';
+          schedulePersist();
         });
+
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            block.remove();
+            schedulePersist();
+          });
+        }
 
         var drag = { active: false, startX: 0, startY: 0, left: 0, top: 0 };
         function startDrag(e) {
+          if (e.target === deleteBtn) return;
           e.preventDefault();
           drag.active = true;
+          block.classList.add('is-dragging');
           var clientX = e.touches ? e.touches[0].clientX : e.clientX;
           var clientY = e.touches ? e.touches[0].clientY : e.clientY;
           drag.startX = clientX;
@@ -272,7 +505,10 @@
           block.style.top = (drag.top + (clientY - drag.startY)) + 'px';
         }
         function endDrag() {
+          if (!drag.active) return;
           drag.active = false;
+          block.classList.remove('is-dragging');
+          schedulePersist();
         }
         handle.addEventListener('mousedown', startDrag);
         handle.addEventListener('touchstart', startDrag, { passive: false });
@@ -285,42 +521,172 @@
         return block;
       }
 
-      function addTextBlock() {
-        if (!textLayer || !wbCanvas) return;
-        var rect = wbCanvas.getBoundingClientRect();
-        var layerRect = textLayer.getBoundingClientRect();
-        var x = layerRect.width / 2;
-        var y = layerRect.height / 2;
+      function addTextBlockAt(x, y) {
+        if (!textLayer) return;
         var block = createTextBlock(x, y);
         textLayer.appendChild(block);
-        block.querySelector('.wb-text-content').focus();
+        var content = block.querySelector('.wb-text-content');
+        if (content) content.focus();
+        schedulePersist();
       }
 
-      if (addTextBtn) addTextBtn.addEventListener('click', addTextBlock);
+      function addTextBlockCenter() {
+        if (!textLayer || !boardEl) return;
+        var rect = boardEl.getBoundingClientRect();
+        addTextBlockAt(rect.width / 2, rect.height / 2);
+      }
+
+      function layerPointFromEvent(e) {
+        if (!boardEl) return { x: 0, y: 0 };
+        var rect = boardEl.getBoundingClientRect();
+        var clientX = e.clientX;
+        var clientY = e.clientY;
+        if (e.touches && e.touches[0]) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      wbCanvas.addEventListener('mousedown', startDraw);
+      wbCanvas.addEventListener('mousemove', moveDraw);
+      wbCanvas.addEventListener('mouseup', endDraw);
+      wbCanvas.addEventListener('mouseleave', endDraw);
+      wbCanvas.addEventListener('touchstart', startDraw, { passive: false });
+      wbCanvas.addEventListener('touchmove', moveDraw, { passive: false });
+      wbCanvas.addEventListener('touchend', endDraw, { passive: false });
+
+      wbCanvas.addEventListener('dblclick', function (e) {
+        var p = layerPointFromEvent(e);
+        setTool('text');
+        addTextBlockAt(p.x, p.y);
+      });
+
+      if (wbSize) {
+        wbSize.addEventListener('input', function () {
+          setStrokeSize(wbSize.value);
+        });
+      }
+      if (wbSizeInput) {
+        wbSizeInput.addEventListener('input', function () {
+          if (wbSizeInput.value === '') return;
+          setStrokeSize(wbSizeInput.value);
+        });
+        wbSizeInput.addEventListener('change', function () {
+          setStrokeSize(wbSizeInput.value || 4);
+        });
+        wbSizeInput.addEventListener('blur', function () {
+          setStrokeSize(wbSizeInput.value || 4);
+        });
+      }
+
+      if (wbSwatches) {
+        wbSwatches.addEventListener('click', function (e) {
+          var btn = e.target.closest('.whiteboard-swatch');
+          if (!btn) return;
+          var color = btn.getAttribute('data-color');
+          if (!color) return;
+          penColor = color;
+          syncSwatches(color);
+          updateSizeUi();
+        });
+      }
+
+      if (penBtn) penBtn.addEventListener('click', function () { setTool('pen'); });
+      if (eraserBtn) eraserBtn.addEventListener('click', function () { setTool('eraser'); });
+      if (lineBtn) lineBtn.addEventListener('click', function () { setTool('line'); });
+      if (addTextBtn) addTextBtn.addEventListener('click', function () {
+        setTool('text');
+        addTextBlockCenter();
+      });
+      if (clearBtn) clearBtn.addEventListener('click', clearBoard);
+      if (exportBtn) exportBtn.addEventListener('click', exportBoard);
+
+      if (undoBtn) {
+        undoBtn.addEventListener('click', function () {
+          if (undoStack.length <= 1) return;
+          var current = undoStack.pop();
+          redoStack.push(current);
+          restoreState(undoStack[undoStack.length - 1]);
+          updateHistoryButtons();
+          schedulePersist();
+        });
+      }
+      if (redoBtn) {
+        redoBtn.addEventListener('click', function () {
+          if (!redoStack.length) return;
+          var state = redoStack.pop();
+          undoStack.push(state);
+          restoreState(state);
+          updateHistoryButtons();
+          schedulePersist();
+        });
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.target && (e.target.isContentEditable || e.target.tagName === 'INPUT')) return;
+        var key = e.key.toLowerCase();
+        if (key === 'p') { setTool('pen'); return; }
+        if (key === 'e') { setTool('eraser'); return; }
+        if (key === 'l') { setTool('line'); return; }
+        if (key === 't') { setTool('text'); addTextBlockCenter(); return; }
+        if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undoBtn && undoBtn.click();
+        }
+        if ((e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey))) {
+          e.preventDefault();
+          redoBtn && redoBtn.click();
+        }
+      });
+
+      var WB_THEME_OPTIONS = ['ocean', 'dark', 'y2k'];
       var savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'ocean';
-      if (savedTheme !== 'ocean' && savedTheme !== 'dark') savedTheme = 'ocean';
-      document.body.classList.toggle('theme-ocean', savedTheme === 'ocean');
-      document.body.classList.toggle('theme-dark', savedTheme === 'dark');
+      if (WB_THEME_OPTIONS.indexOf(savedTheme) < 0) savedTheme = 'ocean';
+      WB_THEME_OPTIONS.forEach(function (name) {
+        document.body.classList.toggle('theme-' + name, savedTheme === name);
+      });
+      var bgStack = document.getElementById('wb-theme-bg');
+      if (bgStack) {
+        bgStack.classList.add('is-instant');
+        requestAnimationFrame(function () {
+          bgStack.classList.remove('is-instant');
+        });
+      }
+
       if (backLink) {
         backLink.addEventListener('click', function (e) {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           if (e.button !== 0) return;
           e.preventDefault();
+          persistWhiteboard();
           if (pageTransitionEl) {
             pageTransitionEl.classList.add('is-active');
-            setTimeout(function () {
-              window.location.href = 'app.html';
-            }, 620);
+            setTimeout(function () { window.location.href = 'app.html'; }, 620);
           } else {
             window.location.href = 'app.html';
           }
         });
       }
-      // Seed canvas background and history for Undo/Redo.
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
-      saveState();
+
+      syncCanvasSize(false);
+      if (!loadWhiteboard()) {
+        saveState();
+      }
       setTool('pen');
+      updateSizeUi();
+      syncSwatches(penColor);
+      window.addEventListener('resize', scheduleCanvasResize);
+      if (typeof ResizeObserver !== 'undefined') {
+        var canvasWrap = document.querySelector('.whiteboard-canvas-wrap');
+        if (canvasWrap) {
+          new ResizeObserver(scheduleCanvasResize).observe(canvasWrap);
+        }
+      }
+      requestAnimationFrame(function () {
+        syncCanvasSize(true);
+        updateHistoryButtons();
+      });
     })();
   </script>
 </body>
